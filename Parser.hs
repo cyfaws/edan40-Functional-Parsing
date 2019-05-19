@@ -20,7 +20,7 @@ cons(a, b) = a:b
 m -# n = (m # n) >-> snd
 
 (#-) :: Parser a -> Parser b -> Parser a
-m -# n = (m # n) >-> fst
+m #- n = (m # n) >-> fst
 
 spaces :: Parser String
 spaces =  iter ( char ? isSpace )
