@@ -75,7 +75,8 @@ shw prec (Div t u) = parens (prec>6) (shw 6 t ++ "/" ++ shw 7 u)
 
 value :: Expr -> Dictionary.T String Integer -> Integer
 value (Num n) _         = n
-value (Var v) dict      = fromMaybe (error "No such variable") (Dictionary.lookup v dict) 
+value (Var v) dict      = fromMaybe (error ("No such variable \'" ++ v ++ "\'"))
+                                    (Dictionary.lookup v dict) 
 value (Add l r) dict    = (value l dict) + (value r dict)
 value (Sub l r) dict    = (value l dict) - (value r dict)
 value (Mul l r) dict    = (value l dict) * (value r dict)
