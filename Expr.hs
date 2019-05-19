@@ -26,6 +26,9 @@ module Expr(Expr, T, parse, fromString, value, toString) where
 import Prelude hiding (return, fail)
 import Parser hiding (T)
 import qualified Dictionary
+-- own imports 
+import Data.Maybe (fromMaybe)
+
 
 data Expr = Num Integer | Var String | Add Expr Expr 
        | Sub Expr Expr | Mul Expr Expr | Div Expr Expr
@@ -71,14 +74,14 @@ shw prec (Mul t u) = parens (prec>6) (shw 6 t ++ "*" ++ shw 6 u)
 shw prec (Div t u) = parens (prec>6) (shw 6 t ++ "/" ++ shw 7 u)
 
 value :: Expr -> Dictionary.T String Integer -> Integer
-value (Num n) _     = n
-value (Var v) dict  = fromMaybe ( err ("Undefined variable " ++ n ++ "\n")) (Dictionary.lookup v dict)
-value (Add l r)     = (value l dict) + (value r dict)
-value (Sub l r)     = (value l dict) - (value r dict)
-value (Mul l r)     = (value l dict) * (value r dict)
-value (Div l r)     
-    | value dict r  == err ("Division by zero")
-    | otherwise     = (value l dict) / (value r dict)
+value (Num n) _         = n
+value (Var v) dict      = fromMaybe (error "No such variable") (Dictionary.lookup v dict) 
+value (Add l r) dict    = (value l dict) + (value r dict)
+value (Sub l r) dict    = (value l dict) - (value r dict)
+value (Mul l r) dict    = (value l dict) * (value r dict)
+value (Div l r) dict    
+    | value r dict == 0 = error ("Division by zero")
+    | otherwise         = (value l dict) `quot` (value r dict) -- quot är heltalsdivision.
 
 
 instance Parse Expr where

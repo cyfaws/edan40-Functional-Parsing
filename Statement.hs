@@ -6,7 +6,12 @@ import qualified Expr
 type T = Statement
 data Statement =
     Assignment String Expr.T |
-    If Expr.T Statement Statement
+    Skip |                      -- tillagd   
+    Begin Statement |           -- tillagd    
+    If Expr.T Statement Statement |
+    While Expr.T Statement |    -- tillagd 
+    Read Var |                  -- tillagd   
+    Write Expr.T                -- tillagd 
     deriving Show
 
 assignment = word #- accept ":=" # Expr.parse #- require ";" >-> buildAss
