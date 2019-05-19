@@ -38,10 +38,36 @@ write = accept "write" -# Expr.parse #- require ";" >-> Write
 
 
 exec :: [T] -> Dictionary.T String Integer -> [Integer] -> [Integer]
+exec [] _ _ = []
+-- Assignment
+exec (Assignment str expr:stmts) dict input =
+    exec stmts (Dictionary.insert (str, Expr.value expr dict) dict) input
+
+-- Skip
+exec (Skip:stmts) dict input = exec stmts dict input
+
+-- Begin TODO måste kunna gå ur blocket.
+exec (Begin stmt:stmts) dict input = exec stmts dict input
+
+-- If
 exec (If cond thenStmts elseStmts: stmts) dict input = 
     if (Expr.value cond dict)>0 
     then exec (thenStmts: stmts) dict input
     else exec (elseStmts: stmts) dict input
+
+-- While 
+exec (While cond stmt:stmts) dict input =
+    if (Expr.value cond dict)>0 
+    then exec (While cond stmt:stmts) dict input 
+    else exec stmts dict input
+
+-- Read (Antar att det input är en lista som förbrukas. (ett element läses bara en gång.))
+exec (Read expr:stmts) dict (input:inputs) =
+    exec stmts (Dictionary.insert (Expr.toString expr, input) dict) inputs
+    
+-- Write
+exec (Write expr:stmts) dict input = 
+    (Expr.value expr dict):(exec stmts dict input)
 
 instance Parse Statement where
   parse = assignment ! skip ! begin ! ifThenElse ! while ! read ! write
