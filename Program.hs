@@ -5,9 +5,12 @@ import qualified Dictionary
 import Prelude hiding (return, fail)
 import Data.Maybe (fromMaybe)
 
-newtype T = Program [Statement.T] -- to be defined
+newtype T = Program [Statement.T] deriving Show-- to be defined
 instance Parse T where
   parse = (iter Statement.parse) >-> Program
-  toString = error "Program.toString not implemented"
+  -- Pretty hacky toString because we chose to add newlines in the beginning in
+  -- Statement.toString to simplify indentation. The first char that is dropped
+  -- will always be a '\n'
+  toString (Program list) = drop 1 ((concatMap Statement.toString list)++"\n")
              
 exec (Program stmts) input = Statement.exec stmts Dictionary.empty input
