@@ -8,12 +8,13 @@ import Data.Maybe (fromMaybe)
 type T = Statement
 data Statement =
     Assignment String Expr.T |
-    Skip |                      -- tillagd   
-    Begin [Statement] |       -- tillagd    
+    Skip |                      -- tillagd
+    Begin [Statement] |         -- tillagd
     If Expr.T Statement Statement |
-    While Expr.T Statement |    -- tillagd 
-    Read Expr.T |               -- tillagd   
-    Write Expr.T                -- tillagd 
+    While Expr.T Statement |    -- tillagd
+    Read Expr.T |               -- tillagd
+    Write Expr.T |              -- tillagd
+    Comment String              -- tillagd
     deriving Show
 
 
@@ -38,6 +39,7 @@ read = accept "read" -# Expr.parse #- require ";" >-> Read
 
 write = accept "write" -# Expr.parse #- require ";" >-> Write
 
+comment = accept "--" -# iter (char ? (/='\n')) #- require "\n"  >-> Comment
 
 exec :: [T] -> Dictionary.T String Integer -> [Integer] -> [Integer]
 exec [] _ _ = []
@@ -71,6 +73,9 @@ exec (Read expr:stmts) dict (input:inputs) =
 exec (Write expr:stmts) dict input = 
     (Expr.value expr dict):(exec stmts dict input)
 
+-- Comment
+exec (Comment str:stmts) dict input = exec stmts dict input
+
 -- Helper function for indentation.
 indent :: String -> String
 indent [] = []
@@ -80,7 +85,7 @@ indent (s:ss)
 
 
 instance Parse Statement where
-  parse = assignment ! skip ! begin ! ifThenElse ! while ! read ! write
+  parse = comment ! read ! write ! assignment ! skip ! begin ! ifThenElse ! while 
   -- toString has newlines in the beginning of the string to simplify
   -- indentation. I am pretty certain there is a better way. Maybe have
   -- a function that indents on keywords?
@@ -95,3 +100,4 @@ instance Parse Statement where
                                  ++ ((indent.toString) stmt)
   toString (Read expr) = "\nread " ++ (Expr.toString expr) ++ ";"
   toString (Write expr) = "\nwrite " ++ (Expr.toString expr) ++ ";"
+  toString (Comment str) = "\n-- " ++ str
