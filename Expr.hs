@@ -51,11 +51,12 @@ var = word >-> Var
 num = number >-> Num
 
 mulOp = lit '*' >-> (\_ -> Mul) !
-        lit '/' >-> (\_ -> Div) !
-        lit '^' >-> (\_ -> Pow)
+        lit '/' >-> (\_ -> Div)
 
 addOp = lit '+' >-> (\_ -> Add) !
         lit '-' >-> (\_ -> Sub)
+
+powOp = lit '^' >-> (\_ -> Pow)
 
 bldOp e (oper,e') = oper e e'
 
@@ -64,8 +65,14 @@ factor = num !
          lit '(' -# expr #- lit ')' !
          err "illegal factor"
              
-term' e = mulOp # factor >-> bldOp e #> term' ! return e
-term = factor #> term'
+pow' e = powOp # factor >-> bldOp e #> pow' ! return e
+pow = factor #> pow'
+             
+term' e = mulOp # pow >-> bldOp e #> term' ! return e
+term = pow #> term'
+
+--term' e = mulOp # factor >-> bldOp e #> term' ! return e
+--term = factor #> term'
        
 expr' e = addOp # term >-> bldOp e #> expr' ! return e
 expr = term #> expr'
